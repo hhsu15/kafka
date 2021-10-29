@@ -119,3 +119,54 @@ vim ~/.bash_profile  # or zsh
 PATH="$PATH:/Users/usr/kafka_2.12-3.0.0/bin"
 ```
 
+You can also use brew to install kafka. This way when you run kafka command you don't need to include the .sh "kafka-topics.sh" vs "kafka-topics"
+```
+brew install kafka
+```
+
+But we still need to binary to be able modify the config file.
+
+
+### Start Zookeeper and Kafka server
+
+To start zookeeper servrer, Go to the kafka folder, run:
+```bash
+zookeeper-server-start.sh config/zookeeper.properties
+
+```
+
+By default, zookeeper will be running on port 2181.
+
+
+Now, to better manage the app, we can change the data folder from the dedault `/tmp/` to a new directory, for example, here I updated the config file `config/config/zookeeper.properties` to point the dataDir to below folder which we mannually created.
+
+```
+# the directory where the snapshot is stored.
+dataDir=/Users/hsin/kafka_2.12-3.0.0/data/zookeeper
+```
+This way, when you start the zookeeper server, you will see a folder called `version-2` created under that dataDir.
+
+Similarly, we will update the config file `/config/server.properties` and update this line as such:
+```
+# A comma separated list of directories under which to store log files
+ log.dirs=/Users/hsin/kafka_2.12-3.0.0/data/kafka
+```
+
+Finally, we will start kafka server by running:
+```bash
+kafka-server-start.sh config/server.properties
+```
+
+Now you should have two instances running, one for kafka, one for zookeeper.
+
+
+### CLI tools
+
+- To create a topic, you need to specify the zookeeper port, number of partitions, number of replication-factor. Notice, you can't have the number of replication factor greater than the number of brokers you have.
+
+-- Notice, the option --zookeeper has been deprecated so we should instead use --bootstrap-servrer
+```
+kafka-topics.sh --bootstrap-server 127.0.0.1:2181 --topic first_topic --create --partitions 3 --replication-factor 1
+``` 
+
+
