@@ -157,16 +157,110 @@ Finally, we will start kafka server by running:
 kafka-server-start.sh config/server.properties
 ```
 
-Now you should have two instances running, one for kafka, one for zookeeper.
+GNow you should have two instances running, one for kafka, one for zookeeper.
 
 
 ### CLI tools
 
+#### Topic
 - To create a topic, you need to specify the zookeeper port, number of partitions, number of replication-factor. Notice, you can't have the number of replication factor greater than the number of brokers you have.
 
--- Notice, the option --zookeeper has been deprecated so we should instead use --bootstrap-servrer
+-- Notice, the option --zookeeper has been deprecated so we should instead use --bootstrap-servrer, and we will use port 9092 instead of 2181
 ```
-kafka-topics.sh --bootstrap-server 127.0.0.1:2181 --topic first_topic --create --partitions 3 --replication-factor 1
+kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --topic first_topic --create --partitions 3 --replication-factor 1
 ``` 
+
+To see the topics created:
+```bash
+kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list
+```
+
+Run --describe to see more info about a topic
+```
+kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --topic first_topic --describe
+# will give you something like this
+Topic: first_topic	TopicId: VlY3zMSMQEmdVo4MU3-_gA	PartitionCount: 3	ReplicationFactor: 1Configs: segment.bytes=1073741824
+	Topic: first_topic	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
+	Topic: first_topic	Partition: 1	Leader: 0	Replicas: 0	Isr: 0
+	Topic: first_topic	Partition: 2	Leader: 0	Replicas: 0	Isr: 0
+
+# shows info for every topic-partition
+# Leaader 0 means the leader is borker 0 (recall brokers are identified by number
+# Replicas 0 means it's in broker 0
+# ISR(in siync replicas) is in broker 0
+```
+
+To delete a topic,
+```
+kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --topic second_topic --delete
+```
+
+
+#### Console producer
+- Console producer command
+You can send massage from the consloe using kafka-console-producer
+```bash
+kafka-console-producer.sh --broker-list 127.0.0.1:9092 --topic first_topic
+```
+
+You can change the producer properties as well:
+```
+kafka-console-producer.sh --broker-list 127.0.0.1:9092 --topic first_topic --kafka-console-producer.sh --broker-list 127.0.0.1:9092 --topic first_topic --producer-property acks=all
+```
+
+By the way if you send a message to a topic that does not exist, it will create a new topic for you with the dedault property settings. To change the default settings like the number of partitions, go to `/config/server.property`
+
+#### Consle consummer
+
+- Use kafka-console-consummer.sh
+
+```bash
+kafka-console-consumer.sh --bootstrap-server 127.0.0.1:9092 --topic first_topic
+
+```
+
+Now if you send a messsage from producer you will see the message received by the consummer. You cam have two windows side by side to better observe this.
+
+- If you want to see all the messages written to the topic you can run:
+
+```bash
+kafka-console-consumer.sh --bootstrap-server 127.0.0.1:9092 --topic first_topic --ffrom-beginning
+```
+#### Consummer group in action
+
+You can create a consummer group and as long as you use the same consummer group, when you create another consummer instance the message will be distributed to different consumer. E.g, one gets "msg1", another one gets "msg2" and so on.
+
+```
+
+kafka-console-consumer.sh --bootstrap-server 127.0.0.1:9092 --topic first_topic --group my-first-app
+```
+Only one consumer will receive a message each time.
+
+- To see the consumer groups you can run
+
+```bash
+kafka-consummer-groups --boostrap-server localhost:9092 --list
+
+```
+
+To see the consumer groups's status on offset,
+```
+kafka-consummer-groups --booststrap-server localhost:9092 --describe --group my-first-app
+```
+
+The current offset tells you where you are in terms of the msg consumption, the log-end-offset tells you the last offset. To catch up you start the cusummer and it will start from where you left over.
+
+##### Play the messages with specified offset
+
+For example, you to do `--to-earlies`
+```
+kafka-consummer-groups.sh --booststrap-server localhost:9092 --group my-first-app -reset-offsets --to-earliest --execute --topic first_topic
+
+```
+Shift offset by 2 (if your current was 0 this will change it to 2)
+```bash
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group my-first-app --reset-offsets --shift-by 2 execute --topic first_topic
+
+```
 
 
