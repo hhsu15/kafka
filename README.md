@@ -245,7 +245,7 @@ kafka-consummer-groups --boostrap-server localhost:9092 --list
 
 To see the consumer groups's status on offset,
 ```
-kafka-consummer-groups --booststrap-server localhost:9092 --describe --group my-first-app
+kafka-consummer-groups.sh --bootstrap-server localhost:9092 --describe --group my-first-app
 ```
 
 The current offset tells you where you are in terms of the msg consumption, the log-end-offset tells you the last offset. To catch up you start the cusummer and it will start from where you left over.
